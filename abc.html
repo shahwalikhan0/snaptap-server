@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script type="module" src="https://unpkg.com/@google/model-viewer"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .title-overlay {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="title-overlay">Astronaut Model</div>
+    <model-viewer src="https://192.168.18.188:8002/abc.glb" ar ar-modes="scene-viewer webxr quick-look" camera-controls
+        auto-rotate style="width: 100vw; height: 80vh;">
+    </model-viewer>
+</body>
+
+</html>
