@@ -20,7 +20,8 @@ app.get("/:modelFile", (req, res) => {
       <!DOCTYPE html>
       <html lang="en">
       <head>
-        <meta charset="UTF-8">
+        <meta charset="UTF-8"> 
+        
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Model Viewer</title>
         <script type="module" src="https://unpkg.com/@google/model-viewer@latest"></script>
