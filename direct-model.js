@@ -14,8 +14,9 @@ const SUPABASE_BASE_URL =
 app.get("/:modelFile", (req, res) => {
   const modelFile = req.params.modelFile;
 
-  if (modelFile.endsWith(".glb")) {
-    const fullModelUrl = `${SUPABASE_BASE_URL}${modelFile}`;
+  if (modelFile) {
+    const rawModelName = modelFile.replace(/\.(glb|usdz)$/i, "");
+    const fullModelUrl = `${SUPABASE_BASE_URL}${rawModelName}`;
     res.send(`
       <!DOCTYPE html>
       <html lang="en">
