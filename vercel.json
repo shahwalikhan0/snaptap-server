@@ -2,14 +2,14 @@
     "version": 2,
     "builds": [
         {
-            "src": "./direct-model.js",
+            "src": "direct-model.js",
             "use": "@vercel/node"
         }
     ],
     "routes": [
         {
             "src": "/(.*)",
-            "dest": "/index.js"
+            "dest": "/direct-model.js"
         }
     ]
 }
