@@ -1,0 +1,37 @@
+[
+  {
+    "modelName": "abc",
+    "productId": 1,
+    "productName": "abc"
+  },
+  {
+    "modelName": "model-mobile",
+    "productId": "1742505474946",
+    "productName": "model-mobile"
+  },
+  {
+    "modelName": "model-mobile-1742509452",
+    "productId": "1742509462455",
+    "productName": "model-mobile-1742509452.usdz"
+  },
+  {
+    "modelName": "model-mobile-1742533603",
+    "productId": "1742533607445",
+    "productName": "model-mobile-1742533603.usdz"
+  },
+  {
+    "modelName": "model-mobile-1742533651",
+    "productId": "1742533652485",
+    "productName": "model-mobile-1742533651.usdz"
+  },
+  {
+    "modelName": "model-mobile-1742534365",
+    "productId": "1742534368960",
+    "productName": "model-mobile-1742534365.usdz"
+  },
+  {
+    "modelName": "model-mobile-1742538172",
+    "productId": "1742538177150",
+    "productName": "model-mobile-1742538172.usdz"
+  }
+]

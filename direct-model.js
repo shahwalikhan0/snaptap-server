@@ -29,5 +29,5 @@ app.get("/:modelFile", (req, res) => {
 
 app.listen(port, () =>
   //   console.log(`Server running at http://192.168.100.234:${port}`)
-  console.log(`Server running at http://192.168.18.188:${port}`)
+  console.log(`Server running at http://172.20.10.6:${port}`)
 );

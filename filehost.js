@@ -28,7 +28,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve files from 'public' folder
+// Serve files from 'uploads' folder
 app.use(
   express.static(path.join(__dirname, "uploads"), {
     setHeaders: (res, filePath) => {
@@ -38,6 +38,32 @@ app.use(
     },
   })
 );
+
+// Endpoint to serve model data from models.json
+app.get("/modelData", (req, res) => {
+  const modelsFilePath = path.join(__dirname, "uploads", "models.json");
+
+  // Check if the file exists
+  if (!fs.existsSync(modelsFilePath)) {
+    return res.status(404).json({ error: "models.json file not found" });
+  }
+
+  // Read the file and send its contents as JSON
+  fs.readFile(modelsFilePath, "utf8", (err, data) => {
+    if (err) {
+      console.error("Error reading models.json:", err);
+      return res.status(500).json({ error: "Failed to read models.json" });
+    }
+
+    try {
+      const models = JSON.parse(data);
+      res.json(models);
+    } catch (parseError) {
+      console.error("Error parsing models.json:", parseError);
+      res.status(500).json({ error: "Failed to parse models.json" });
+    }
+  });
+});
 
 // Start HTTPS server
 https.createServer(options, app).listen(PORT, () => {

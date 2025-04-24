@@ -1,6 +1,7 @@
 # dependencies
-node_modules/
+node_modules
 
 #models
 *.glb
 *.usdz
+.qodo
