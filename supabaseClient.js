@@ -11,7 +11,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Function to upload GLB file
 async function uploadGLBFile(filePath, brandName, productId) {
-  const fileName = `${brandName}-${productId}.glb`;
+  const fileName = `${brandName}-${productId}.usdz`;
   const fileBuffer = fs.readFileSync(filePath);
 
   const { data, error } = await supabase.storage
@@ -32,7 +32,7 @@ async function uploadGLBFile(filePath, brandName, productId) {
 }
 
 // Example usage:
-uploadGLBFile("./public/abc.glb", "shah", 123).then((url) => {
+uploadGLBFile("./public/abc.usdz", "shah", 123).then((url) => {
   if (url) {
     console.log("Public file URL:", url);
     // Store this URL in your PostgreSQL 'glb_url' field

@@ -28,7 +28,10 @@ app.get("/:modelFile", (req, res) => {
         <style> model-viewer { width: 100vw; height: 100vh; background: #eee; } </style>
       </head>
       <body>
-        <model-viewer src="${fullModelUrl}" camera-controls auto-rotate ar></model-viewer>
+        <model-viewer src="${fullModelUrl}.glb"     ar-modes="scene-viewer quick-look webxr"
+        ios-src="${fullModelUrl}.usdz"
+        camera-controls auto-rotate ar>
+        </model-viewer>
       </body>
       </html>
     `);
