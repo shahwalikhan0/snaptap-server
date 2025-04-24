@@ -8,9 +8,14 @@ app.get("/", (req, res) => {
   res.send("SnapTap Model Viewer backend is running.");
 });
 
+const SUPABASE_BASE_URL =
+  "https://ifyrnbgfeshpykfjgzcc.supabase.co/storage/v1/object/public/product-models/";
+
 app.get("/:modelFile", (req, res) => {
   const modelFile = req.params.modelFile;
+
   if (modelFile.endsWith(".glb")) {
+    const fullModelUrl = `${SUPABASE_BASE_URL}${modelFile}`;
     res.send(`
       <!DOCTYPE html>
       <html lang="en">
@@ -22,7 +27,7 @@ app.get("/:modelFile", (req, res) => {
         <style> model-viewer { width: 100vw; height: 100vh; background: #eee; } </style>
       </head>
       <body>
-        <model-viewer src="uploads/${modelFile}" camera-controls auto-rotate ar></model-viewer>
+        <model-viewer src="${fullModelUrl}" camera-controls auto-rotate ar></model-viewer>
       </body>
       </html>
     `);
@@ -31,4 +36,4 @@ app.get("/:modelFile", (req, res) => {
   }
 });
 
-module.exports = app;
+module.exports = app; // required for Vercel deployment
