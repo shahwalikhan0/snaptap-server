@@ -1,6 +1,5 @@
 const express = require("express");
 const app = express();
-const port = 8003;
 
 app.use(express.static(__dirname)); // Serve static files
 
@@ -27,7 +26,5 @@ app.get("/:modelFile", (req, res) => {
   }
 });
 
-app.listen(port, () =>
-  //   console.log(`Server running at http://192.168.100.234:${port}`)
-  console.log(`Server running at http://172.20.10.6:${port}`)
-);
+// Required export for Vercel
+module.exports = app;
