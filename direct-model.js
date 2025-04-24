@@ -3,6 +3,11 @@ const app = express();
 
 app.use(express.static(__dirname)); // Serve static files
 
+// Root route to avoid "Cannot GET /"
+app.get("/", (req, res) => {
+  res.send("SnapTap Model Viewer backend is running.");
+});
+
 app.get("/:modelFile", (req, res) => {
   const modelFile = req.params.modelFile;
   if (modelFile.endsWith(".glb")) {
@@ -26,5 +31,4 @@ app.get("/:modelFile", (req, res) => {
   }
 });
 
-// Required export for Vercel
 module.exports = app;
