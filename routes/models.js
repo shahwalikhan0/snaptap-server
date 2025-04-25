@@ -2,8 +2,10 @@
 const express = require("express");
 const router = express.Router();
 
-const SUPABASE_BASE_URL =
-  "https://ifyrnbgfeshpykfjgzcc.supabase.co/storage/v1/object/public/product-models/";
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_MODEL_POSTFIX = process.env.SUPABASE_MODEL_POSTFIX;
+
+const SUPABASE_BASE_URL = `${SUPABASE_URL}${SUPABASE_MODEL_POSTFIX}`;
 
 router.get("/:modelFile", (req, res) => {
   const modelFile = req.params.modelFile;
