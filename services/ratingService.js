@@ -1,4 +1,5 @@
 //services/ratingService.js
+const { supabase } = require("../supabaseClient");
 
 async function createRating(rating) {
   return await supabase.from("ratings").insert([rating]);

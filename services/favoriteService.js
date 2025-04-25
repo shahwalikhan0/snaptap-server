@@ -1,4 +1,5 @@
 //services/favoriteService.js
+const { supabase } = require("../supabaseClient");
 
 async function createFavorite(favorite) {
   return await supabase.from("favorites").insert([favorite]);

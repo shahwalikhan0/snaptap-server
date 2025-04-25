@@ -1,3 +1,4 @@
+const { supabase } = require("../supabaseClient");
 async function createProduct(product) {
   return await supabase.from("products").insert([product]);
 }

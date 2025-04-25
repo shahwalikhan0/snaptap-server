@@ -1,4 +1,5 @@
 //services/scanService.js
+const { supabase } = require("../supabaseClient");
 
 async function createScan(scan) {
   return await supabase.from("scans").insert([scan]);

@@ -1,4 +1,5 @@
 //service/productFrameService.js
+const { supabase } = require("../supabaseClient");
 
 async function createFrame(frame) {
   return await supabase.from("frames").insert([frame]);

@@ -1,3 +1,5 @@
+const { supabase } = require("../supabaseClient");
+
 async function createQRCode(qr) {
   return await supabase.from("qr_codes").insert([qr]);
 }
