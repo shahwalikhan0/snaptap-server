@@ -16,3 +16,21 @@ app.get("/", (req, res) => {
 });
 
 module.exports = app;
+
+// require("dotenv").config();
+// const express = require("express");
+// const app = express();
+
+// const apiRoutes = require("./routes/api");
+
+// app.use(express.json());
+// app.use("/api", apiRoutes);
+
+// app.get("/", (req, res) => {
+//   res.send("Local SnapTap backend running");
+// });
+
+// const PORT = 3000;
+// app.listen(PORT, () => {
+//   console.log(`Server running at http://localhost:${PORT}`);
+// });
