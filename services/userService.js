@@ -20,6 +20,7 @@ async function deleteUser(id) {
   return await supabase.from("users").delete().eq("id", id);
 }
 
+// userService.js
 async function isValidCustomer(id) {
   const { data, error } = await supabase
     .from("users")
@@ -31,11 +32,7 @@ async function isValidCustomer(id) {
     return { error };
   }
 
-  if (data.role === "customer") {
-    return { isValid: true };
-  } else {
-    return { isValid: false };
-  }
+  return { data: { isValid: data?.role === "customer" } };
 }
 
 async function isValidSeller(id) {
@@ -49,11 +46,7 @@ async function isValidSeller(id) {
     return { error };
   }
 
-  if (data.role === "seller") {
-    return { isValid: true };
-  } else {
-    return { isValid: false };
-  }
+  return { data: { isValid: data?.role === "seller" } };
 }
 
 module.exports = {
