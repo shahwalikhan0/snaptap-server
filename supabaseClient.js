@@ -1,21 +1,19 @@
-// supabaseUpload.js
+// supabaseClient.js
+require("dotenv").config();
 const { createClient } = require("@supabase/supabase-js");
 const fs = require("fs");
-const path = require("path");
 
-// Setup
-const supabaseUrl = "https://ifyrnbgfeshpykfjgzcc.supabase.co"; // Replace with your Supabase URL
-const supabaseKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlmeXJuYmdmZXNocHlrZmpnemNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0NzU2OTYsImV4cCI6MjA2MTA1MTY5Nn0.QcAuGvBfOX5e3eq70GY3KBfYnH4MbvD79exvcd3wq_s"; // Use service role key for server-side
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
+
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Function to upload GLB file
-async function uploadGLBFile(filePath, brandName, productId) {
-  const fileName = `${brandName}-${productId}.usdz`;
+async function uploadGLBFile(filePath, brandName, brandId, productId) {
+  const fileName = `${brandName}${brandId}-${productId}.usdz`;
   const fileBuffer = fs.readFileSync(filePath);
 
   const { data, error } = await supabase.storage
-    .from("product-models") // your bucket name
+    .from("product-models")
     .upload(fileName, fileBuffer, {
       contentType: "model/gltf-binary",
       upsert: true,
@@ -26,15 +24,18 @@ async function uploadGLBFile(filePath, brandName, productId) {
     return null;
   }
 
-  // Construct the public URL
   const publicUrl = `${supabaseUrl}/storage/v1/object/public/product-models/${fileName}`;
   return publicUrl;
 }
 
+module.exports = { uploadGLBFile };
 // Example usage:
-uploadGLBFile("./public/abc.usdz", "shah", 123).then((url) => {
-  if (url) {
-    console.log("Public file URL:", url);
-    // Store this URL in your PostgreSQL 'glb_url' field
-  }
-});
+uploadGLBFile("./public/abc.usdz", "shah", 1, 123)
+  .then((url) => {
+    if (url) {
+      console.log("Public file URL:", url);
+    }
+  })
+  .catch((error) => {
+    console.error("Error uploading file:", error);
+  });

@@ -36,13 +36,13 @@ const generateQRCode = async (url) => {
     ctx.drawImage(logoImage, logoX, logoY, logoSize, logoSize);
 
     // Save the final image to a file
-    const outputFilePath = path.join(__dirname, "qr-with-logo.png");
+    const outputFilePath = path.join(__dirname, "qr-code.png");
     const out = fs.createWriteStream(outputFilePath);
     const stream = canvas.createPNGStream();
     stream.pipe(out);
 
     out.on("finish", () => {
-      console.log("QR code with logo saved as qr-with-logo.png");
+      console.log("QR code with logo saved as qr-code.png");
     });
   } catch (error) {
     console.error("Error generating QR code:", error);
@@ -50,6 +50,4 @@ const generateQRCode = async (url) => {
 };
 
 // Call the function with the URL you want to encode
-generateQRCode(
-  "https://ifyrnbgfeshpykfjgzcc.supabase.co/storage/v1/object/public/product-models//shah-123.glb"
-);
+generateQRCode("https://snaptap-server.vercel.app/shah-123");
