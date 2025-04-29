@@ -42,3 +42,27 @@ if __name__ == "__main__":
 
     # Ensure Blender quits after execution
     bpy.ops.wm.quit_blender()
+
+# import subprocess
+# import os
+
+# def convert_usdz_to_obj(usdz_filepath, obj_filepath):
+#     """Converts a USDZ file to OBJ format using usdzconvert.
+
+#     Args:
+#         usdz_filepath: Path to the input USDZ file.
+#         obj_filepath: Path to save the output OBJ file.
+#     """
+#     try:
+#         subprocess.run(['usdzconvert', usdz_filepath, '-o', obj_filepath], check=True)
+#         print(f"Successfully converted '{usdz_filepath}' to '{obj_filepath}'")
+#     except subprocess.CalledProcessError as e:
+#         print(f"Error converting '{usdz_filepath}': {e}")
+#     except FileNotFoundError:
+#         print("Error: 'usdzconvert' tool not found. Ensure it is installed and in your system's PATH.")
+
+# if __name__ == '__main__':
+#     # Example usage:
+#     usdz_file = 'abc.usdz'
+#     obj_file = 'def.obj'
+#     convert_usdz_to_obj(usdz_file, obj_file)

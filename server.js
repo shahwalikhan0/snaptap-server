@@ -1,36 +1,88 @@
 const express = require("express");
+const multer = require("multer");
+const fs = require("fs");
+const path = require("path");
+const { convertUsdzToGlb } = require("./services/convertService");
+const { uploadFileToSupabase } = require("./services/uploadService");
+
 const app = express();
-const port = 8003;
 
-app.use(express.static(__dirname)); // Serve static files
+const modelViewerRoutes = require("./routes/models");
+const apiRoutes = require("./routes/api");
+const productRoutes = require("./routes/products");
+const brandRoutes = require("./routes/brands");
+const userRoutes = require("./routes/users");
 
-app.get("/:modelFile", (req, res) => {
-  const modelFile = req.params.modelFile;
-  if (modelFile) {
-    res.send(`
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Model Viewer</title>
-        <script type="module" src="https://unpkg.com/@google/model-viewer@latest"></script>
-        <style> model-viewer { width: 100vw; height: 100vh; background: #eee; } </style>
-      </head>
-      <body>
-        <model-viewer src="uploads/${modelFile}.glb"     ar-modes="scene-viewer quick-look webxr"
-        ios-src="uploads/${modelFile}.usdz" 
-        camera-controls auto-rotate ar>
-        </model-viewer>
-      </body>
-      </html>
-    `);
-  } else {
-    res.status(404).send("Model not found!");
+app.use(express.static(__dirname));
+app.use("/", modelViewerRoutes);
+app.use("/api", apiRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/brands", brandRoutes);
+app.use("/api/users", userRoutes);
+
+// Upload logic
+const uploadDir = "uploads";
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    fs.mkdirSync(uploadDir, { recursive: true });
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${file.originalname}`);
+  },
+});
+const upload = multer({
+  storage,
+  limits: { fileSize: 100 * 1024 * 1024 },
+});
+
+app.post("/upload-usdz-file", upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).send("No file uploaded");
+    }
+
+    console.log("File uploaded:", req.file);
+    const uploadedPath = req.file.path;
+
+    const glbPath = await convertUsdzToGlb(uploadedPath);
+
+    const brandName = "newshah";
+    const brandId = 1;
+    const productId = 123;
+
+    const usdzPublicUrl = await uploadFileToSupabase(
+      uploadedPath,
+      brandName,
+      brandId,
+      productId,
+      "usdz"
+    );
+    const glbPublicUrl = await uploadFileToSupabase(
+      glbPath,
+      brandName,
+      brandId,
+      productId,
+      "glb"
+    );
+
+    res.status(200).send({
+      message: "Files uploaded successfully",
+      usdzUrl: usdzPublicUrl,
+      glbUrl: glbPublicUrl,
+    });
+  } catch (error) {
+    console.error("Error during conversion:", error);
+    res.status(500).send("Conversion failed: " + error.message);
   }
 });
 
-app.listen(port, () =>
-  //   console.log(`Server running at http://10.1.19.24.234:8003/abc.glb`)
-  console.log(`Server running at http://192.168.18.188:${port}`)
-);
+app.get("/", (req, res) => {
+  res.send("SnapTap backend is running.");
+});
+
+// Start server here
+const port = process.env.PORT || 3000;
+app.listen(port, "0.0.0.0", () => {
+  console.log(`Server running on http://localhost:${port}`);
+});

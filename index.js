@@ -1,150 +1,90 @@
-const express = require("express");
-const { ApolloServer, gql } = require("apollo-server-express");
-const { ApolloServerPluginDrainHttpServer } = require("apollo-server-core");
-const { GraphQLUpload, graphqlUploadExpress } = require("graphql-upload");
-const fs = require("fs-extra");
-const path = require("path");
-const http = require("http");
-const cors = require("cors");
-const { pipeline } = require("stream");
-const util = require("util");
-const pipelineAsync = util.promisify(pipeline);
+// require("dotenv").config();
+// const express = require("express");
+// const multer = require("multer");
+// const fs = require("fs");
+// const path = require("path");
+// const { convertUsdzToGlb } = require("./services/convertService");
+// const { uploadFileToSupabase } = require("./services/uploadService");
 
-// Create Express app and HTTP server
-const app = express();
-const httpServer = http.createServer(app);
+// const app = express();
 
-// Middleware setup
-app.use(cors());
-app.use(graphqlUploadExpress({ maxFileSize: 20000000, maxFiles: 1 })); // 20MB max file size
+// // Your existing routes
+// const modelViewerRoutes = require("./routes/models");
+// const apiRoutes = require("./routes/api");
+// const productRoutes = require("./routes/products");
+// const brandRoutes = require("./routes/brands");
+// const userRoutes = require("./routes/users");
 
-app.use((req, res, next) => {
-  console.log("Incoming request:", req.method, req.url);
-  next();
-});
+// app.use(express.static(__dirname));
+// app.use("/", modelViewerRoutes);
+// app.use("/api", apiRoutes);
+// app.use("/api/products", productRoutes);
+// app.use("/api/brands", brandRoutes);
+// app.use("/api/users", userRoutes);
 
-// Paths
-const uploadDir = path.join(__dirname, "uploads");
-const dataFile = path.join(__dirname, "uploads/models.json");
+// // Upload logic
+// const uploadDir = "uploads";
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     fs.mkdirSync(uploadDir, { recursive: true });
+//     cb(null, uploadDir);
+//   },
+//   filename: (req, file, cb) => {
+//     cb(null, `${file.originalname}`);
+//   },
+// });
+// const upload = multer({
+//   storage,
+//   limits: { fileSize: 100 * 1024 * 1024 },
+// });
 
-// Ensure uploads directory and data file exist
-fs.ensureDirSync(uploadDir);
-if (!fs.existsSync(dataFile)) fs.writeFileSync(dataFile, JSON.stringify([]));
+// app.post("/upload-usdz-file", upload.single("file"), async (req, res) => {
+//   try {
+//     if (!req.file) {
+//       return res.status(400).send("No file uploaded");
+//     }
 
-// GraphQL Schema
-const typeDefs = gql`
-  scalar Upload
+//     console.log("File uploaded:", req.file);
+//     const uploadedPath = req.file.path;
 
-  type Query {
-    hello: String
-    getModels: [Model]
-  }
+//     const glbPath = await convertUsdzToGlb(uploadedPath);
 
-  type Model {
-    modelName: String
-    productId: String
-    productName: String
-  }
+//     const brandName = "newshah";
+//     const brandId = 1;
+//     const productId = 123;
 
-  type Mutation {
-    uploadModel(file: Upload!, productName: String!): String!
-  }
-`;
+//     const usdzPublicUrl = await uploadFileToSupabase(
+//       uploadedPath,
+//       brandName,
+//       brandId,
+//       productId,
+//       "usdz"
+//     );
+//     const glbPublicUrl = await uploadFileToSupabase(
+//       glbPath,
+//       brandName,
+//       brandId,
+//       productId,
+//       "glb"
+//     );
 
-// Read data from models.json
-function readData() {
-  return JSON.parse(fs.readFileSync(dataFile));
-}
+//     res.status(200).send({
+//       message: "Files uploaded successfully",
+//       usdzUrl: usdzPublicUrl,
+//       glbUrl: glbPublicUrl,
+//     });
+//   } catch (error) {
+//     console.error("Error during conversion:", error);
+//     res.status(500).send("Conversion failed: " + error.message);
+//   }
+// });
 
-// Write data to models.json
-function writeData(data) {
-  fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-}
+// app.get("/", (req, res) => {
+//   res.send("SnapTap backend is running.");
+// });
 
-// Resolvers
-const resolvers = {
-  Upload: GraphQLUpload,
-  Query: {
-    hello: () => "Hello from GraphQL!",
-    getModels: () => readData(),
-  },
-  Mutation: {
-    uploadModel: async (_, { file, productName }) => {
-      try {
-        const { createReadStream, filename } = await file;
-        const stream = createReadStream();
-
-        if (!filename.endsWith(".usdz")) {
-          console.log("Invalid file type. Only .usdz files are allowed.");
-          return "Invalid file type. Only .usdz files are allowed.";
-        }
-
-        const filePath = path.join(uploadDir, filename);
-
-        const writeStream = fs.createWriteStream(filePath);
-
-        await pipelineAsync(stream, writeStream);
-        console.log("File upload completed:", filename);
-
-        // Await the conversion process
-        await convertFile(filePath);
-
-        // Store model data
-        const productId = Date.now().toString();
-        const modelName = path.basename(filename, ".usdz");
-
-        const models = readData();
-        const modelData = { modelName, productId, productName };
-        models.push(modelData);
-        writeData(models);
-
-        return `File uploaded and model added: ${filename}`;
-      } catch (error) {
-        console.error("File upload failed:", error);
-        throw new Error("Failed to upload file");
-      }
-    },
-  },
-};
-
-// Convert USDZ to GLB
-function convertFile(usdzFile) {
-  return new Promise((resolve, reject) => {
-    const glbFile = usdzFile.replace(".usdz", ".glb");
-    const convertScript = path.join(__dirname, "convert.py");
-
-    const { exec } = require("child_process");
-    exec(
-      `blender -b -P ${convertScript} -- ${usdzFile} ${glbFile}`,
-      (error, stdout, stderr) => {
-        if (error) {
-          console.error(`Conversion failed1: ${error.message}`);
-          reject(error);
-        } else if (stderr) {
-          console.error(`Conversion failed2: ${stderr}`);
-          reject(stderr);
-        } else {
-          console.log(`Conversion successful: ${stdout}`);
-          resolve(stdout);
-        }
-      }
-    );
-  });
-}
-
-// Set up Apollo Server
-const server = new ApolloServer({
-  typeDefs,
-  resolvers,
-  plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
-});
-
-async function startServer() {
-  await server.start();
-  server.applyMiddleware({ app });
-
-  httpServer.listen(4000, () => {
-    console.log("🚀 Server ready at http://localhost:4000/graphql");
-  });
-}
-startServer();
+// // Start server here
+// const port = process.env.PORT || 3000;
+// app.listen(port, "0.0.0.0", () => {
+//   console.log(`Server running on http://localhost:${port}`);
+// });

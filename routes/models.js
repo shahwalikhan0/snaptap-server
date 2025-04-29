@@ -1,18 +1,44 @@
 // routes/models.js
 const express = require("express");
 const router = express.Router();
+const fs = require("fs");
+const path = require("path");
+const multer = require("multer");
+const { convertUsdzToGlb } = require("../services/convertService");
+const {
+  uploadFileToSupabase,
+  uploadImageToSupabase,
+} = require("../services/uploadService");
+const {
+  generateAndUploadQRCode,
+} = require("../scripts/generateAndUploadQRCode");
+
+const crypto = require("crypto");
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/");
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname); // get .usdz or .jpg
+    const uniqueName = crypto.randomBytes(16).toString("hex") + ext;
+    cb(null, uniqueName);
+  },
+});
+
+const upload = multer({ storage });
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_MODEL_POSTFIX = process.env.SUPABASE_MODEL_POSTFIX;
+const SUPABASE_BUCKET_POSTFIX = process.env.SUPABASE_BUCKET_POSTFIX;
 
-const SUPABASE_BASE_URL = `${SUPABASE_URL}${SUPABASE_MODEL_POSTFIX}`;
+const SUPABASE_BASE_URL = `${SUPABASE_URL}${SUPABASE_BUCKET_POSTFIX}`;
 
-router.get("/:modelFile", (req, res) => {
+router.get("/model/:modelFile", (req, res) => {
   const modelFile = req.params.modelFile;
 
   if (modelFile) {
     const rawModelName = modelFile.replace(/\.(glb|usdz)$/i, "");
-    const fullModelUrl = `${SUPABASE_BASE_URL}${rawModelName}`;
+    const fullModelUrl = `${SUPABASE_BASE_URL}/product-models/${rawModelName}`;
     res.send(`
       <!DOCTYPE html>
       <html lang="en">
@@ -34,5 +60,85 @@ router.get("/:modelFile", (req, res) => {
     res.status(404).send("Model not found!");
   }
 });
+
+router.post(
+  "/model/add-new-model",
+  upload.fields([
+    { name: "modelFile", maxCount: 1 },
+    { name: "image", maxCount: 1 },
+  ]),
+  async (req, res) => {
+    try {
+      const modelFile = req.files["modelFile"][0];
+      const image = req.files["image"][0];
+
+      const { brandName, brandId, productId } = req.body;
+
+      const glbPath = await convertUsdzToGlb(modelFile);
+
+      const productSuffixPath = `${brandName}${brandId}-${productId}`;
+
+      const usdzPublicUrl = await uploadFileToSupabase(
+        modelFile.path,
+        productSuffixPath,
+        "usdz"
+      );
+      const glbPublicUrl = await uploadFileToSupabase(
+        glbPath,
+        productSuffixPath,
+        "glb"
+      );
+
+      const imagePublicUrl = await uploadImageToSupabase(
+        image.path,
+        productSuffixPath,
+        image.mimetype.split("/")[1]
+      );
+
+      const productUrl = `https://snaptap.up.railway.app/model/${productSuffixPath}`;
+
+      const qrCodeUrl = await generateAndUploadQRCode(
+        productUrl,
+        productSuffixPath
+      );
+
+      res.status(200).send({
+        message: "Model Files uploaded successfully",
+        usdzUrl: usdzPublicUrl,
+        glbUrl: glbPublicUrl,
+        imageUrl: imagePublicUrl,
+        qrCodeUrl,
+      });
+
+      const res = deleteFiles([modelFile.path, glbPath, image.path]);
+      if (res.length > 0) console.error("Errors deleting files:", res);
+    } catch (err) {
+      console.error("Error in /add-new-model:", err);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
+);
+
+const deleteFiles = (files) => {
+  const errors = [];
+
+  files.forEach((file) => {
+    try {
+      if (fs.existsSync(file)) {
+        fs.unlinkSync(file);
+      } else {
+        const msg = `File not found: ${file}`;
+        console.warn(msg);
+        errors.push({ file, error: msg });
+      }
+    } catch (err) {
+      const msg = `Failed to delete ${file}: ${err.message}`;
+      console.error(msg);
+      errors.push({ file, error: msg });
+    }
+  });
+
+  return errors;
+};
 
 module.exports = router;
