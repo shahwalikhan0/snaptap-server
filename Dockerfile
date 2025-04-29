@@ -1,19 +1,5 @@
 # Use the official Node.js image
 FROM node:20
-
-# Install system dependencies (including Blender for USDZ → GLB conversion)
-# RUN apt-get update && apt-get install -y \
-#     libcairo2-dev \
-#     libgif-dev \
-#     libpango1.0-dev \
-#     libjpeg-dev \
-#     libpng-dev \
-#     libpixman-1-dev \
-#     python3 \
-#     make \
-#     g++ \
-#     blender
-
 # Install dependencies
 RUN apt-get update && apt-get install -y \
     libcairo2-dev \

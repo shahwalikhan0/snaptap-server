@@ -47,11 +47,31 @@ router.get("/model/:modelFile", (req, res) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Model Viewer</title>
         <script type="module" src="https://unpkg.com/@google/model-viewer@latest"></script>
-        <style> model-viewer { width: 100vw; height: 100vh; background: #eee; } </style>
+        <style> 
+            model-viewer { 
+              width: 100vw; height: 100vh; background: #eee; 
+            } 
+
+            #custom-ar-button {
+              position: absolute;
+              top: 16px;
+              left: 16px;
+              z-index: 100;
+              background-color: #00A8DE;
+              color: white;
+              font-weight: bold;
+              padding: 10px 16px;
+              border: none;
+              border-radius: 6px;
+              cursor: pointer;
+              font-size: 14px;
+            }
+      </style>
       </head>
       <body>
         <model-viewer src="${fullModelUrl}.glb" ar-modes="scene-viewer quick-look webxr"
         ios-src="${fullModelUrl}.usdz" camera-controls auto-rotate ar>
+          <button slot="ar-button" id="custom-ar-button">View AR Mode</button>
         </model-viewer>
       </body>
       </html>
@@ -110,8 +130,8 @@ router.post(
         qrCodeUrl,
       });
 
-      const res = deleteFiles([modelFile.path, glbPath, image.path]);
-      if (res.length > 0) console.error("Errors deleting files:", res);
+      const errors = deleteFiles([modelFile.path, glbPath, image.path]);
+      if (errors.length > 0) console.error("Errors deleting files:", errors);
     } catch (err) {
       console.error("Error in /add-new-model:", err);
       res.status(500).json({ error: "Internal server error" });
