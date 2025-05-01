@@ -8,14 +8,20 @@ router.get("/", async (req, res) => {
   res.json(data);
 });
 
-router.get("/:id/is-valid-customer", async (req, res) => {
-  const { data, error } = await userService.isValidCustomer(req.params.id);
+router.get("/allow-customer-login/:username/:password", async (req, res) => {
+  const { data, error } = await userService.allowCustomerLogin(
+    req.params.username,
+    req.params.password
+  );
   if (error) return res.status(500).json({ error: error.message });
   res.json(data);
 });
 
-router.get("/:id/is-valid-seller", async (req, res) => {
-  const { data, error } = await userService.isValidSeller(req.params.id);
+router.get("/allow-seller-login/:username/:password", async (req, res) => {
+  const { data, error } = await userService.allowSellerLogin(
+    req.params.username,
+    req.params.password
+  );
   if (error) return res.status(500).json({ error: error.message });
   res.json(data);
 });

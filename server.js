@@ -12,6 +12,8 @@ const apiRoutes = require("./routes/api");
 const productRoutes = require("./routes/products");
 const brandRoutes = require("./routes/brands");
 const userRoutes = require("./routes/users");
+const notifcationRoutes = require("./routes/notifications");
+const favoriteRoutes = require("./routes/favorites");
 
 app.use(express.static(__dirname));
 app.use("/", modelViewerRoutes);
@@ -19,6 +21,8 @@ app.use("/api", apiRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/brands", brandRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/notifications", notifcationRoutes);
+app.use("/api/favorites", favoriteRoutes);
 
 // Upload logic
 const uploadDir = "uploads";

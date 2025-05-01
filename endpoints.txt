@@ -1,0 +1,25 @@
+Products:
+    - BASE_URL/api/products
+    - BASE_URL/api/products/id/1
+    - BASE_URL/api/products/trending
+    - BASE_URL/api/products/new-arivals
+    - BASE_URL/api/products/brand-id/1
+    - BASE_URL/api/products/search/key
+
+Users:
+    - BASE_URL/api/users            //will remove this one
+    - BASE_URL/api/users/1
+    - BASE_URL/api/users/allow-customer-login/username/password
+    - BASE_URL/api/users/allow-seller-login/username/password
+
+Notifications:
+    - BASE_URL/api/notifications/id/1
+    - BASE_URL/api/notifications/user-id/1
+    - BASE_URL/api/notifications/create
+
+Favorites:
+    - BASE_URL/api/favorites/id/1
+    - BASE_URL/api/notifications/user-id/1
+    - BASE_URL/api/notifications/is-favorite/:userId/:productId
+    - BASE_URL/api/notifications/is-favorite/1/1
+    - BASE_URL/api/notifications/create/:favoriteObject

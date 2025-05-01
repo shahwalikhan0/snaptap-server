@@ -48,31 +48,90 @@ router.get("/model/:modelFile", (req, res) => {
         <title>Model Viewer</title>
         <script type="module" src="https://unpkg.com/@google/model-viewer@latest"></script>
         <style> 
-            model-viewer { 
-              width: 100vw; height: 100vh; background: #eee; 
-            } 
+          body {
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
+          }
+          model-viewer { 
+            width: 100vw; 
+            height: 100vh; 
+            background: #eee; 
+          }
 
-            #custom-ar-button {
-              position: absolute;
-              top: 16px;
-              left: 16px;
-              z-index: 100;
-              background-color: #00A8DE;
-              color: white;
-              font-weight: bold;
-              padding: 10px 16px;
-              border: none;
-              border-radius: 6px;
-              cursor: pointer;
-              font-size: 14px;
-            }
-      </style>
+          #custom-ar-button, #ar-not-supported {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            z-index: 100;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+          }
+
+          #custom-ar-button {
+            border: 1px solid #00A8DE;
+            background: transparent;
+            color: #00A8DE;
+            cursor: pointer;
+            display: none; /* hidden by default */
+          }
+
+          #ar-not-supported {
+            color: red;
+            background: transparent;
+            border: 1px solid red;
+            display: none; /* hidden by default */
+          }
+        </style>
       </head>
       <body>
         <model-viewer src="${fullModelUrl}.glb" ar-modes="scene-viewer quick-look webxr"
         ios-src="${fullModelUrl}.usdz" camera-controls auto-rotate ar>
-          <button slot="ar-button" id="custom-ar-button">View AR Mode</button>
+          <button slot="ar-button" id="custom-ar-button">View in AR</button>
         </model-viewer>
+
+      <div id="ar-not-supported">Device does not support AR.</div>
+
+      <script>
+
+        const arButton = document.getElementById('custom-ar-button');
+        const fallback = document.getElementById('ar-not-supported');
+
+        async function checkARSupport() {
+          const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+          const isAndroid = /Android/.test(navigator.userAgent);
+
+          // iOS supports Quick Look AR if it's a real device
+          if (isIOS) {
+            const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+            if (isSafari) {
+              arButton.style.display = 'block';
+              return;
+            }
+          }
+
+          // Android: Check for WebXR AR support
+          if (isAndroid && navigator.xr && navigator.xr.isSessionSupported) {
+            try {
+              const supported = await navigator.xr.isSessionSupported('immersive-ar');
+              if (supported) {
+                arButton.style.display = 'block';
+                return;
+              }
+            } catch (err) {
+              // silently fail
+            }
+          }
+
+          // Otherwise, not supported
+          fallback.style.display = 'block';
+        }
+
+        window.addEventListener('DOMContentLoaded', checkARSupport);
+      </script>
+
       </body>
       </html>
     `);

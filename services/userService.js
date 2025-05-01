@@ -21,28 +21,36 @@ async function deleteUser(id) {
 }
 
 // userService.js
-async function isValidCustomer(id) {
+async function allowCustomerLogin(username, password) {
   const { data, error } = await supabase
     .from("users")
     .select("role")
-    .eq("id", id)
+    .eq("username", username)
+    .eq("password", password)
     .single();
 
   if (error) {
+    if (error.code === "PGRST116") {
+      return { data: { allow: false } };
+    }
     return { error };
   }
 
-  return { data: { isValid: data?.role === "customer" } };
+  return { data: { allow: data?.role === "customer" } };
 }
 
-async function isValidSeller(id) {
+async function allowSellerLogin(username, password) {
   const { data, error } = await supabase
     .from("users")
     .select("role")
-    .eq("id", id)
+    .eq("username", username)
+    .eq("password", password)
     .single();
 
   if (error) {
+    if (error.code === "PGRST116") {
+      return { data: { allow: false } };
+    }
     return { error };
   }
 
@@ -55,6 +63,6 @@ module.exports = {
   getUserById,
   updateUser,
   deleteUser,
-  isValidCustomer,
-  isValidSeller,
+  allowCustomerLogin,
+  allowSellerLogin,
 };
