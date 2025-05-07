@@ -9,7 +9,7 @@ async function getFrames() {
   return await supabase.from("frames").select("*");
 }
 async function getFrameById(id) {
-  return await supabase.from("frames").select("*").eq("id", id).single();
+  return await supabase.from("frames").select("*").eq("id", id).maybeSingle();
 }
 
 async function deleteFrame(id) {

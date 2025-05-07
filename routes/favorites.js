@@ -16,23 +16,21 @@ router.get("/user-id/:id", async (req, res) => {
   res.json(data);
 });
 
-router.get("/is-favorite/:userId/:productId", async (req, res) => {
-  const { data, error } = await favoriteService.getIsFavoriteByUser(
-    req.params.userId,
-    req.params.productId
-  );
-  if (error) return res.status(404).json({ error: error.message });
-  res.json(data);
-});
-
-router.post("/create", async (req, res) => {
-  const { data, error } = await favoriteService.createFavorite(req.body);
+router.post("/set-favorite/:userId/:productId", async (req, res) => {
+  const favorite = {
+    user_id: req.params.userId,
+    product_id: req.params.productId,
+  };
+  const { data, error } = await favoriteService.createFavorite(favorite);
   if (error) return res.status(400).json({ error: error.message });
   res.status(201).json(data);
 });
 
-router.delete("/:id", async (req, res) => {
-  const { error } = await favoriteService.deleteFavorite(req.params.id);
+router.delete("/unset-favorite/:userId/:productId", async (req, res) => {
+  const { error } = await favoriteService.deleteFavorite(
+    req.params.userId,
+    req.params.productId
+  );
   if (error) return res.status(400).json({ error: error.message });
   res.status(204).end();
 });

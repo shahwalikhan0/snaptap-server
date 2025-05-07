@@ -10,7 +10,7 @@ async function getRatings() {
 }
 
 async function getRatingById(id) {
-  return await supabase.from("ratings").select("*").eq("id", id).single();
+  return await supabase.from("ratings").select("*").eq("id", id).maybeSingle();
 }
 
 async function deleteRating(id) {

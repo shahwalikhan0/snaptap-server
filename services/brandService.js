@@ -8,7 +8,15 @@ async function getBrands() {
 }
 
 async function getBrandById(id) {
-  return await supabase.from("brands").select("*").eq("id", id).single();
+  return await supabase.from("brands").select("*").eq("id", id).maybeSingle();
+}
+
+async function searchBrandsByName(key) {
+  return await supabase
+    .from("brands")
+    .select("*")
+    .ilike("name", `%${key}%`)
+    .order("created_at", { ascending: false });
 }
 
 async function updateBrand(id, update) {
@@ -25,4 +33,5 @@ module.exports = {
   getBrandById,
   updateBrand,
   deleteBrand,
+  searchBrandsByName,
 };

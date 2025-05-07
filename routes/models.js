@@ -1,10 +1,18 @@
 // routes/models.js
+// require("dotenv").config();
+const axios = require("axios");
 const express = require("express");
 const router = express.Router();
 const fs = require("fs");
 const path = require("path");
 const multer = require("multer");
 const { convertUsdzToGlb } = require("../services/convertService");
+const { getBrandById, updateBrand } = require("../services/brandService");
+const {
+  createProduct,
+  createProductDetails,
+} = require("../services/productService");
+
 const {
   uploadFileToSupabase,
   uploadImageToSupabase,
@@ -45,7 +53,8 @@ router.get("/model/:modelFile", (req, res) => {
       <head>
         <meta charset="UTF-8"> 
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Model Viewer</title>
+        <link rel="icon" href="https://ifyrnbgfeshpykfjgzcc.supabase.co/storage/v1/object/public/user-images/rounded-logo.png" type="image/png">
+        <title>SNAPTAP | Model Viewer</title>
         <script type="module" src="https://unpkg.com/@google/model-viewer@latest"></script>
         <style> 
           body {
@@ -151,11 +160,73 @@ router.post(
       const modelFile = req.files["modelFile"][0];
       const image = req.files["image"][0];
 
-      const { brandName, brandId, productId } = req.body;
+      if (!modelFile || !image) {
+        return res
+          .status(400)
+          .json({ error: "Model file and image are required." });
+      }
+
+      const {
+        brandId,
+        name,
+        description,
+        price,
+        website,
+        category,
+        location,
+        is_active,
+      } = req.body;
+
+      if (!brandId || !name || !price || !category || !location) {
+        return res.status(400).json({
+          error: "Kindly fill in all required fields.",
+        });
+      }
+
+      const brandDetail = await getBrandById(brandId);
+
+      if (!brandDetail || !brandDetail?.data || !brandDetail.data.id) {
+        return res.status(404).json({ error: "Brand not found." });
+      }
+
+      const brand = brandDetail?.data;
+
+      const productSuffixPath = `${brand.username}${brand.id}-${
+        brand.total_models_generated + 1
+      }`;
+
+      const { data: updatedBrand, error: brandError } = await updateBrand(
+        brand.id,
+        {
+          total_models_generated: brand.total_models_generated + 1,
+        }
+      );
+
+      if (brandError) {
+        return res.status(500).json({ error: brandError.message });
+      }
+
+      const imagePublicUrl = await uploadImageToSupabase(
+        image.path,
+        productSuffixPath,
+        image.mimetype.split("/")[1]
+      );
+
+      const { data: product, error: productError } = await createProduct({
+        brand_id: brand.id,
+        name,
+        description,
+        category,
+        is_active: is_active === "TRUE",
+        image_url: imagePublicUrl,
+      });
+
+      if (productError) {
+        return res.status(500).json({ error: productError.message });
+      }
+      const productId = product.id;
 
       const glbPath = await convertUsdzToGlb(modelFile);
-
-      const productSuffixPath = `${brandName}${brandId}-${productId}`;
 
       const usdzPublicUrl = await uploadFileToSupabase(
         modelFile.path,
@@ -168,12 +239,6 @@ router.post(
         "glb"
       );
 
-      const imagePublicUrl = await uploadImageToSupabase(
-        image.path,
-        productSuffixPath,
-        image.mimetype.split("/")[1]
-      );
-
       const productUrl = `https://snaptap.up.railway.app/model/${productSuffixPath}`;
 
       const qrCodeUrl = await generateAndUploadQRCode(
@@ -181,12 +246,28 @@ router.post(
         productSuffixPath
       );
 
+      // Create product details
+      const { error: productDetailsError } = await createProductDetails({
+        id: productId,
+        price,
+        brand_name: brand.name,
+        website_link: website,
+        location,
+        qr_code_url: qrCodeUrl,
+        model_url: usdzPublicUrl,
+      });
+
+      if (productDetailsError) {
+        return res.status(500).json({ error: productDetailsError.message });
+      }
+
       res.status(200).send({
-        message: "Model Files uploaded successfully",
+        message: "Files uploaded successfully",
         usdzUrl: usdzPublicUrl,
         glbUrl: glbPublicUrl,
-        imageUrl: imagePublicUrl,
         qrCodeUrl,
+        imageUrl: imagePublicUrl,
+        productUrl,
       });
 
       const errors = deleteFiles([modelFile.path, glbPath, image.path]);
@@ -219,5 +300,34 @@ const deleteFiles = (files) => {
 
   return errors;
 };
+
+const BUCKET_WHITELIST = ["user-images", "product-images", "product-qr-codes"];
+
+router.get("/bucket/:bucket/:imageName", async (req, res) => {
+  const { bucket, imageName } = req.params;
+
+  if (!BUCKET_WHITELIST.includes(bucket)) {
+    return res.status(403).send("Access to this bucket is not allowed.");
+  }
+
+  if (!imageName) {
+    return res.status(404).send("Image not found!");
+  }
+
+  const fullImageUrl = `${SUPABASE_BASE_URL}/${bucket}/${imageName}`;
+
+  try {
+    const response = await axios.get(fullImageUrl, { responseType: "stream" });
+
+    // Set the correct content-type header from Supabase response
+    res.setHeader("Content-Type", response.headers["content-type"]);
+
+    // Pipe the image stream to the client
+    response.data.pipe(res);
+  } catch (error) {
+    console.error("Failed to fetch image:", error.message);
+    res.status(500).send("Failed to fetch image.");
+  }
+});
 
 module.exports = router;

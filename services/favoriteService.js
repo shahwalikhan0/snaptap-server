@@ -20,15 +20,25 @@ async function getIsFavoriteByUser(userId, productId) {
     .select("*")
     .eq("user_id", userId)
     .eq("product_id", productId)
-    .single();
+    .maybeSingle();
 }
 
-async function deleteFavorite(id) {
-  return await supabase.from("favorites").delete().eq("id", id);
+async function deleteFavorite(userId, productId) {
+  const { data, error } = await supabase
+    .from("favorites")
+    .delete()
+    .eq("user_id", userId)
+    .eq("product_id", productId);
+
+  return { data, error }; // Always return an object with both fields
 }
 
 async function getFavoriteById(id) {
-  return await supabase.from("favorites").select("*").eq("id", id).single();
+  return await supabase
+    .from("favorites")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
 }
 
 module.exports = {

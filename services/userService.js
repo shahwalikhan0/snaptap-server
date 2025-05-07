@@ -1,7 +1,7 @@
 const { supabase } = require("../supabaseClient");
 
-async function createUser(user) {
-  return await supabase.from("users").insert([user]);
+async function createUser(user, table = "users") {
+  return await supabase.from(table).insert([user]);
 }
 
 async function getAllUsers() {
@@ -9,7 +9,15 @@ async function getAllUsers() {
 }
 
 async function getUserById(id) {
-  return await supabase.from("users").select("*").eq("id", id).single();
+  return await supabase.from("users").select("*").eq("id", id).maybeSingle();
+}
+
+async function getUserByUsername(username) {
+  return await supabase
+    .from("users")
+    .select("*")
+    .eq("username", username)
+    .maybeSingle();
 }
 
 async function updateUser(id, update) {
@@ -20,41 +28,38 @@ async function deleteUser(id) {
   return await supabase.from("users").delete().eq("id", id);
 }
 
-// userService.js
-async function allowCustomerLogin(username, password) {
+async function allowLogin(username, password, userType = "customer") {
+  const table = userType === "customer" ? "users" : "brands";
+
   const { data, error } = await supabase
-    .from("users")
-    .select("role")
+    .from(table)
+    .select("id, username, email, name, phone, image_url")
     .eq("username", username)
     .eq("password", password)
-    .single();
+    .maybeSingle();
 
-  if (error) {
-    if (error.code === "PGRST116") {
-      return { data: { allow: false } };
-    }
-    return { error };
+  const userNotFound = error?.code === "PGRST116" || !data;
+
+  if (userNotFound) {
+    return {
+      error: {
+        message: `User not found`,
+      },
+    };
   }
 
-  return { data: { allow: data?.role === "customer" } };
-}
+  if (error) return { error };
 
-async function allowSellerLogin(username, password) {
-  const { data, error } = await supabase
-    .from("users")
-    .select("role")
-    .eq("username", username)
-    .eq("password", password)
-    .single();
-
-  if (error) {
-    if (error.code === "PGRST116") {
-      return { data: { allow: false } };
-    }
-    return { error };
-  }
-
-  return { data: { isValid: data?.role === "seller" } };
+  return {
+    data: {
+      id: data.id,
+      name: data.name,
+      username: data.username,
+      email: data.email,
+      phone: data.phone,
+      image_url: data.image_url,
+    },
+  };
 }
 
 module.exports = {
@@ -63,6 +68,6 @@ module.exports = {
   getUserById,
   updateUser,
   deleteUser,
-  allowCustomerLogin,
-  allowSellerLogin,
+  allowLogin,
+  getUserByUsername,
 };

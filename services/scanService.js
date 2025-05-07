@@ -8,7 +8,7 @@ async function getScans() {
   return await supabase.from("scans").select("*");
 }
 async function getScanById(id) {
-  return await supabase.from("scans").select("*").eq("id", id).single();
+  return await supabase.from("scans").select("*").eq("id", id).maybeSingle();
 }
 async function deleteScan(id) {
   return await supabase.from("scans").delete().eq("id", id);

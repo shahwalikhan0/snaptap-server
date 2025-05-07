@@ -6,11 +6,6 @@ const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_BUCKET_POSTFIX = process.env.SUPABASE_BUCKET_POSTFIX;
-
-const SUPABASE_BASE_URL = `${SUPABASE_URL}${SUPABASE_BUCKET_POSTFIX}`;
-
 async function uploadFileToSupabase(filePath, productSuffixPath, fileType) {
   const fileName = `${productSuffixPath}.${fileType}`;
   const fileBuffer = fs.readFileSync(filePath);
@@ -27,7 +22,7 @@ async function uploadFileToSupabase(filePath, productSuffixPath, fileType) {
     throw new Error("File upload failed");
   }
 
-  const publicUrl = `${SUPABASE_BASE_URL}/product-models/${fileName}`;
+  const publicUrl = `https://snaptap.up.railway.app/model/${productSuffixPath}`;
   return publicUrl;
 }
 
@@ -46,7 +41,7 @@ async function uploadImageToSupabase(filePath, productSuffixPath, fileType) {
     throw new Error("Image upload failed");
   }
 
-  const publicUrl = `${SUPABASE_BASE_URL}/product-images/${productSuffixPath}`;
+  const publicUrl = `https://snaptap.up.railway.app/bucket/product-images/${productSuffixPath}`;
   return publicUrl;
 }
 
@@ -69,7 +64,36 @@ async function uploadQRCodeToSupabase(
     throw new Error("QR code upload failed");
   }
 
-  const publicUrl = `${SUPABASE_BASE_URL}/product-qr-codes/${productSuffixPath}`;
+  const publicUrl = `https://snaptap.up.railway.app/bucket/product-qr-codes/${productSuffixPath}`;
+  return publicUrl;
+}
+
+async function deleteImageFromSupabase(filePath) {
+  const { error } = await supabase.storage
+    .from("product-images")
+    .remove([filePath]);
+
+  if (error) {
+    console.error("Delete failed:", error.message);
+    throw new Error("Image deletion failed");
+  }
+}
+async function uploadUserImageToSupabase(filePath, username) {
+  const fileBuffer = fs.readFileSync(filePath);
+
+  const { data, error } = await supabase.storage
+    .from("user-images")
+    .upload(username, fileBuffer, {
+      contentType: "image/png",
+      upsert: true,
+    });
+
+  if (error) {
+    console.error("Upload failed:", error.message);
+    throw new Error("User image upload failed");
+  }
+
+  const publicUrl = `https://snaptap.up.railway.app/bucket/user-images/${username}`;
   return publicUrl;
 }
 
@@ -77,4 +101,6 @@ module.exports = {
   uploadFileToSupabase,
   uploadImageToSupabase,
   uploadQRCodeToSupabase,
+  uploadUserImageToSupabase,
+  deleteImageFromSupabase,
 };
