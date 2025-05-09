@@ -41,4 +41,12 @@ router.delete("/delete/:id", async (req, res) => {
   res.status(204).end();
 });
 
+router.get("/brand-detail/:brandId", async (req, res) => {
+  const { data, error } = await brandService.getBrandDetailById(
+    req.params.brandId
+  );
+  if (error) return res.status(404).json({ error: error.message });
+  res.json(data);
+});
+
 module.exports = router;

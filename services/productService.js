@@ -75,12 +75,14 @@ async function deleteProduct(id) {
   return await supabase.from("products").delete().eq("id", id);
 }
 async function getProductsByBrandId(id) {
-  return await supabase
+  const { data, error } = await supabase
     .from("products")
     .select("*")
-    .eq("brand_id", id)
-    .eq("is_active", true)
-    .maybeSingle();
+    .eq("brand_id", id);
+  if (error) {
+    return { data: null, error };
+  }
+  return { data, error: null };
 }
 
 async function getTrendingProducts() {
@@ -89,8 +91,49 @@ async function getTrendingProducts() {
     .select("*")
     .eq("is_active", true)
     .order("created_at", { ascending: false })
-    .limit(10)
+    .limit(10);
+}
+
+async function updateProductRating(productId, newRating, oldRating = null) {
+  const { data: product, error: fetchError } = await supabase
+    .from("product_details")
+    .select("rating, rating_count")
+    .eq("id", productId)
     .maybeSingle();
+
+  if (fetchError) return { data: null, error: fetchError };
+  if (!product) return { data: null, error: { message: "Product not found" } };
+
+  let totalRatingSum = product.rating * product.rating_count;
+  let newCount = product.rating_count;
+
+  if (oldRating !== null) {
+    totalRatingSum = totalRatingSum - oldRating + newRating;
+  } else {
+    totalRatingSum += newRating;
+    newCount += 1;
+  }
+
+  const updatedRating = totalRatingSum / newCount;
+
+  const { error: updateError } = await supabase
+    .from("product_details")
+    .update({
+      rating: updatedRating,
+      rating_count: newCount,
+    })
+    .eq("id", productId);
+
+  if (updateError) return { data: null, error: updateError };
+
+  return {
+    data: {
+      id: productId,
+      rating: updatedRating,
+      rating_count: newCount,
+    },
+    error: null,
+  };
 }
 
 async function getNewArrivals() {
@@ -107,8 +150,21 @@ async function searchProductByProductName(key) {
     .from("products")
     .select("*")
     .ilike("name", `%${key}%`)
-    .eq("is_active", true)
-    .maybeSingle();
+    .eq("is_active", true);
+}
+
+async function getProductsByIds(ids) {
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .in("id", ids)
+    .eq("is_active", true);
+
+  if (error) {
+    return { data: null, error };
+  }
+
+  return { data, error: null };
 }
 
 module.exports = {
@@ -123,4 +179,6 @@ module.exports = {
   searchProductByProductName,
   getProductDetail,
   createProductDetails,
+  getProductsByIds,
+  updateProductRating,
 };

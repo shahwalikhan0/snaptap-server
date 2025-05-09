@@ -21,6 +21,14 @@ async function getNotificationsByUserId(userId) {
     .order("created_at", { ascending: false });
 }
 
+async function getNotificationsByBrandId(userId) {
+  return await supabase
+    .from("notifications")
+    .select("*")
+    .eq("brand_id", userId)
+    .order("created_at", { ascending: false });
+}
+
 async function deleteNotification(id) {
   return await supabase.from("notifications").delete().eq("id", id);
 }
@@ -39,6 +47,13 @@ async function markAllAsRead(userId) {
     .eq("user_id", userId);
 }
 
+async function markAllBrandAsRead(brandId) {
+  return await supabase
+    .from("notifications")
+    .update({ is_read: true })
+    .eq("brand_id", userId);
+}
+
 async function updateResponseToSubmitted(id) {
   return await supabase
     .from("notifications")
@@ -54,4 +69,6 @@ module.exports = {
   markAsRead,
   markAllAsRead,
   updateResponseToSubmitted,
+  getNotificationsByBrandId,
+  markAllBrandAsRead,
 };

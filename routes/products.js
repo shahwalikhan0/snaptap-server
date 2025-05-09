@@ -31,12 +31,6 @@ router.get("/id/:id", async (req, res) => {
   res.json(data);
 });
 
-router.post("/create", async (req, res) => {
-  const { data, error } = await productService.createProduct(req.body);
-  if (error) return res.status(400).json({ error: error.message });
-  res.status(201).json(data);
-});
-
 router.get("/brand-id/:id", async (req, res) => {
   const { data, error } = await productService.getProductsByBrandId(
     req.params.id
@@ -65,7 +59,7 @@ router.get("/search/:key", async (req, res) => {
   res.json(data);
 });
 
-//may be donot need this route & need delete by brandId
+//TODO: may be donot need this route & need delete by brandId
 router.get("/user-id/:id", async (req, res) => {
   const { data, error } = await userService.isValidCustomer(req.params.id);
   if (error) return res.status(500).json({ error: error.message });

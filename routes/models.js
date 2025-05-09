@@ -177,6 +177,8 @@ router.post(
         is_active,
       } = req.body;
 
+      //TODO: check package details of brand in future
+
       if (!brandId || !name || !price || !category || !location) {
         return res.status(400).json({
           error: "Kindly fill in all required fields.",

@@ -14,8 +14,11 @@ const brandRoutes = require("./routes/brands");
 const userRoutes = require("./routes/users");
 const notifcationRoutes = require("./routes/notifications");
 const favoriteRoutes = require("./routes/favorites");
+const feedbackRoutes = require("./routes/feedbacks");
 
 app.use(express.static(__dirname));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use("/", modelViewerRoutes);
 app.use("/api", apiRoutes);
 app.use("/api/products", productRoutes);
@@ -23,6 +26,7 @@ app.use("/api/brands", brandRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/notifications", notifcationRoutes);
 app.use("/api/favorites", favoriteRoutes);
+app.use("/api/feedbacks", feedbackRoutes);
 
 // Upload logic
 const uploadDir = "uploads";

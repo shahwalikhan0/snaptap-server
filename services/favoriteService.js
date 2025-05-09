@@ -1,17 +1,33 @@
 //services/favoriteService.js
 const { supabase } = require("../supabaseClient");
+const productService = require("../services/productService");
 
-//change this to take userId and productId
 async function createFavorite(favorite) {
   return await supabase.from("favorites").insert([favorite]);
 }
 
 async function getFavoritesByUserId(userId) {
-  return await supabase
+  const { data, error } = await supabase
     .from("favorites")
-    .select("*")
+    .select("product_id")
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
+
+  if (error) {
+    return { data: null, error };
+  }
+  const productIds = data.map((favorite) => favorite.product_id);
+  const { data: products, error: productError } =
+    await productService.getProductsByIds(productIds);
+
+  if (productError) {
+    return { data: null, error: productError };
+  }
+  products.forEach((product) => {
+    product.is_favorite = true;
+  });
+
+  return { data: products, error: null };
 }
 
 async function getIsFavoriteByUser(userId, productId) {
